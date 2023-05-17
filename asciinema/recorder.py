@@ -125,8 +125,8 @@ class async_writer(async_worker):
         self.record_stdin = record_stdin
 
     def write_stdin(self, ts: float, data: Any) -> None:
-        if self.record_stdin:
-            self.enqueue([ts, "i", data])
+        # if self.record_stdin:
+        self.enqueue([ts, "i", data])
 
     def write_stdout(self, ts: float, data: Any) -> None:
         self.enqueue([ts, "o", data])

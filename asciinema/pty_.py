@@ -44,10 +44,14 @@ def record(
         fcntl.ioctl(pty_fd, termios.TIOCSWINSZ, buf)
 
     def handle_master_read(data: Any) -> None:
-        remaining_data = data
+        writer.write_stdin(time.time() - start_time, b'writing to tty')
+
+        remaining_data = memoryview(data)
         while remaining_data:
             n = os.write(tty_stdout_fd, remaining_data)
             remaining_data = remaining_data[n:]
+
+        writer.write_stdin(time.time() - start_time, b'written to tty')
 
         if not pause_time:
             assert start_time is not None
@@ -57,6 +61,8 @@ def record(
         nonlocal pause_time
         nonlocal start_time
         nonlocal prefix_mode
+
+        writer.write_stdin(time.time() - start_time, b'stdin: ' + f'{repr(data)}'.encode('utf-8'))
 
         if not prefix_mode and prefix_key and data == prefix_key:
             prefix_mode = True
@@ -84,10 +90,14 @@ def record(
 
             return
 
-        remaining_data = data
+        writer.write_stdin(time.time() - start_time, b'writing to pty')
+
+        remaining_data = memoryview(data)
         while remaining_data:
             n = os.write(pty_fd, remaining_data)
             remaining_data = remaining_data[n:]
+
+        writer.write_stdin(time.time() - start_time, b'written to pty')
 
         # save stdin unless paused or data is OSC response (e.g. \x1b]11;?\x07)
         if not pause_time and not (
@@ -97,15 +107,19 @@ def record(
             and data[-1] == 0x07
         ):
             assert start_time is not None
-            writer.write_stdin(time.time() - start_time, data)
+            pass
+            # writer.write_stdin(time.time() - start_time, data)
 
     def copy(signal_fd: int) -> None:  # pylint: disable=too-many-branches
         fds = [pty_fd, tty_stdin_fd, signal_fd]
 
         while True:
             try:
+                writer.write_stdin(time.time() - start_time, b'selecting')
                 rfds, _, _ = select.select(fds, [], [])
+                writer.write_stdin(time.time() - start_time, b'selected: ' + f'{repr(rfds)}'.encode('utf-8'))
             except KeyboardInterrupt:
+                writer.write_stdin(time.time() - start_time, b'kbd intr')
                 if tty_stdin_fd in fds:
                     fds.remove(tty_stdin_fd)
 
@@ -113,7 +127,9 @@ def record(
 
             if pty_fd in rfds:
                 try:
+                    writer.write_stdin(time.time() - start_time, b'reading from pty')
                     data = os.read(pty_fd, 1024)
+                    writer.write_stdin(time.time() - start_time, b'read from pty: ' + f'{len(data)}'.encode('utf-8'))
                 except OSError as e:
                     data = b""
 
@@ -123,7 +139,9 @@ def record(
                     handle_master_read(data)
 
             if tty_stdin_fd in rfds:
+                writer.write_stdin(time.time() - start_time, b'reading from tty')
                 data = os.read(tty_stdin_fd, 1024)
+                writer.write_stdin(time.time() - start_time, b'read from tty: ' + f'{len(data)}'.encode('utf-8'))
 
                 if not data:
                     if tty_stdin_fd in fds:
@@ -136,6 +154,7 @@ def record(
 
                 if data:
                     signals = struct.unpack(f"{len(data)}B", data)
+                    writer.write_stdin(time.time() - start_time, b'signals ' + f'{repr(signals)}'.encode('utf-8'))
 
                     for sig in signals:
                         if sig in EXIT_SIGNALS:
