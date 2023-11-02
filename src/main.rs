@@ -193,7 +193,7 @@ fn main() -> Result<()> {
             pause_on_markers,
         } => todo!(),
 
-        Commands::Cat { filename } => todo!(),
+        Commands::Cat { filename } => todo!(), // TODO indeed
 
         Commands::Upload { filename } => todo!(),
 
