@@ -115,6 +115,7 @@ impl pty::Recorder for Recorder {
     }
 
     fn input(&mut self, data: &[u8]) {
+        // TODO handle add-marker key
         if self.record_input {
             let msg = Message::Input(self.elapsed_time(), data.into());
             let _ = self.sender.send(msg);
