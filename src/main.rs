@@ -191,7 +191,7 @@ fn main() -> Result<()> {
             speed,
             loop_,
             pause_on_markers,
-        } => todo!(),
+        } => todo!(), // TODO indeed
 
         Commands::Cat { filename } => todo!(),
 
