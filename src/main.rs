@@ -195,7 +195,7 @@ fn main() -> Result<()> {
 
         Commands::Cat { filename } => todo!(),
 
-        Commands::Upload { filename } => todo!(),
+        Commands::Upload { filename } => todo!(), // TODO indeed
 
         Commands::Auth => todo!(),
     }
