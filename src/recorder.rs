@@ -120,6 +120,7 @@ impl pty::Recorder for Recorder {
             let _ = self.sender.send(msg);
             // TODO use notifier for error reporting
         }
+        // TODO use notifier for pause/marker(?)
     }
 
     fn resize(&mut self, size: (u16, u16)) {
