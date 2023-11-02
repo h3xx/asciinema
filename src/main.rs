@@ -197,7 +197,7 @@ fn main() -> Result<()> {
 
         Commands::Upload { filename } => todo!(),
 
-        Commands::Auth => todo!(),
+        Commands::Auth => todo!(), // TODO indeed
     }
 
     Ok(())
